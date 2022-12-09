@@ -3,6 +3,7 @@ Esta é uma releitura do clássico game Bomberman construído inteiramente em Ja
 
 ## Informações gerais
 O Jogo possui 3 mapas, com diversos inimigos dentro de cada um deles, alguns com movimentação diferente dos demais. Utilizando a bomba, você consegue matar os seus inimigos, porém cuidado, a bomba também poderá matar o bomberman.<br/>
+Para passar para o próximo level você precisa encontrar uma porta, que fica escondida atrás dos blocos destruíveis com a bomba. Destruindo o bloco a porta aparecerá e basta levar o bomberman até ela que você irá para o próximo level.<br/>
 Você também deve evitar encostar nos inimigos, pois se ocorrer você irá perder o jogo!<br/>
 Cada vez que você matar um inimigo com a bomba, você verá que o contador de Score irá aumentar em 1.<br/>
 Sempre que você for para a tela de Vitória e Derrota, você terá as opções de Reiniciar o game ou então de visualizar o ranking.<br/>
