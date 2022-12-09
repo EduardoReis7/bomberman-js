@@ -9,17 +9,17 @@ kaboom({
 const MOVE_SPEED = 120;
 const ENEMY_SPEED = 60;
 
-loadRoot('./assets/sprites/');
+loadRoot('./assets/');
 
-loadSprite('wall-steel', 'wall-steel.png');
-loadSprite('brick-red', 'brick-red.png');
-loadSprite('door', 'door.png');
-loadSprite('bomb', 'bomb.png');
-loadSprite('bg', 'bg.png');
+loadSprite('wall-steel', 'sprites/wall-steel.png');
+loadSprite('brick-red', 'sprites/brick-red.png');
+loadSprite('door', 'sprites/door.png');
+loadSprite('bomb', 'sprites/bomb.png');
+loadSprite('bg', 'sprites/bg.png');
 
-loadSprite('wall-gold', 'wall-gold.png');
-loadSprite('brick-wood', 'brick-wood.png');
-loadSprite('bomberman', 'bomberman.png', {
+loadSprite('wall-gold', 'sprites/wall-gold.png');
+loadSprite('brick-wood', 'sprites/brick-wood.png');
+loadSprite('bomberman', 'sprites/bomberman.png', {
     sliceX: 7,
     sliceY: 4,
     anims: {
@@ -37,24 +37,52 @@ loadSprite('bomberman', 'bomberman.png', {
     }
 });
 
-loadSprite('bomb', 'bomb.png', {
+loadSprite('bomb', 'sprites/bomb.png', {
     sliceX: 3,
     anims: {
         move: {from: 0, to: 2}
     }
 });
 
-loadSprite('explosion', 'explosion.png', {
+loadSprite('explosion', 'sprites/explosion.png', {
     sliceX: 5,
     sliceY: 5
 })
 
-loadSprite('baloon', 'baloon.png', {sliceX: 3});
-loadSprite('ghost', 'ghost.png', {sliceX: 3});
-loadSprite('slime', 'slime.png', {sliceX: 3});
+loadSprite('baloon', 'sprites/baloon.png', {sliceX: 3});
+loadSprite('ghost', 'sprites/ghost.png', {sliceX: 3});
+loadSprite('slime', 'sprites/slime.png', {sliceX: 3});
+
+loadSound("boom", "sounds/boom.ogg");
+loadSound('ost', 'sounds/ost.wav');
+loadSound('ost-win', 'sounds/ost-win.mp3');
+
+function rankingControl(s) {
+    const rankList = JSON.parse(localStorage.getItem("rank"));
+    rankList.push(s);
+
+    let result = rankList
+        .filter((value, index, array) => array.indexOf(value) === index)
+        .sort((s1, s2) => {
+            if (s1 > s2) return -1;
+            if (s1 < s2) return 1;
+            return 0;
+        }
+    );
+
+    localStorage.setItem("rank", JSON.stringify(result));
+}
+
+const ost = play('ost', {volume: 0.4, loop: true});
 
 scene('game', ({level, score}) => {
     layers(['bg', 'obj', 'ui'], 'obj');
+
+    ost.play();
+
+    if (!localStorage.getItem("rank")) {
+        localStorage.setItem("rank", JSON.stringify([]));
+    }
 
     const maps = [
         [
@@ -73,8 +101,8 @@ scene('game', ({level, score}) => {
             'azazazazazazaza',
             'azzzzz   &   za',
             'aaaaaaaaaaaaaaa',
-          ],
-          [
+        ],
+        [
             'bbbbbbbbbbbbbbb',
             'bwwww  *wwwwwpb',
             'bwbwbwbwbwbwbwb',
@@ -90,7 +118,24 @@ scene('game', ({level, score}) => {
             'bwbwbwbwbwbwbwb',
             'bwwwww   &   wb',
             'bbbbbbbbbbbbbbb',
-          ]
+        ],
+        [
+            'aaaaaaaaaaaaaaa',
+            'awwww  *wwwwwwa',
+            'awa awawawawawa',
+            'aww}w  &wwwpwwa',
+            'awbwbwbwbwbwb a',
+            'awwwwwwwwwwww}a',
+            'awawawawawawawa',
+            'a  wwwww * wwwa',
+            'a bwbwbwbwbwbwa',
+            'a  wwww wwwww a',
+            'awawawa}wwawa}a',
+            'awww  *bwbbbbba',
+            'awbWbwbbwww wwa',
+            'aww & wbwww}wpa',
+            'aaaaaaaaaaaaaaa',
+        ]
     ];
 
     const levelCfg = {
@@ -108,7 +153,7 @@ scene('game', ({level, score}) => {
         '*': [sprite('baloon'), 'baloon', 'dangerous', {dir: -1, time: 0}]
     }
 
-    const gameLevel = addLevel(maps[level], levelCfg);
+    const gameLevel = addLevel(maps[level > 2 ? level - 1 : level], levelCfg);
 
 add([sprite('bg'), layer('bg')])
 
@@ -233,6 +278,7 @@ add([sprite('bg'), layer('bg')])
     // Functions
 
     function spawnExplosion(p, frame) {
+        play('boom', {volume: 0.1, loop: false})
         const obj = add([
             sprite('explosion', {
                 animeSpeed: 0.1,
@@ -277,10 +323,15 @@ add([sprite('bg'), layer('bg')])
 
     // Colisoes
     player.collides('door', (d) => {
-        go("game", {
-            level: (level + 1) % maps.length,
-            score: scoreLabel.value
-        })
+        level++;
+        if (level > 2) {
+            go("win", {score: scoreLabel.value});
+        } else {
+            go("game", {
+                level: level,
+                score: scoreLabel.value
+            });
+        }
     });
 
     collides('explosion', 'dangerous', (k, s) => {
@@ -330,17 +381,53 @@ add([sprite('bg'), layer('bg')])
         wait(0.25, () => {
             go('lose', {score: scoreLabel.value});
         });
-        
     });
 
 });
 
 scene('lose', ({score}) => {
+    rankingControl(score);
+    ost.pause();
     add([text('Score: ' + score, 32), origin('center'), pos(width() / 2, height() / 2)]);
 
-    keyPress('space', () => {
-        go('game', {level: 0, score: 0});
-    })
-})
+    add([text('Pressione SPACE para reiniciar o jogo.', 10), origin('center'), pos(400, 400)]);
+    add([text('Pressione ENTER para visualizar o rank.', 10), origin('center'), pos(400, 375)]);
+
+    keyPress('enter', () => go('ranking', {score: score}));
+    keyPress('space', () => go('game', {level: 0, score: 0}));
+});
+
+//TODO scene ranking
+scene('ranking', ({score}) => {
+    add([text('Ranking '), origin('center'), pos(400, 100)]);
+
+    const rankList = JSON.parse(localStorage.getItem("rank"));
+    let posX = 385;
+    let posY = 125;
+    for (let i = 0; i < 5; i++) {
+        if (rankList[i] === undefined) {
+            break;
+        }
+        add([text(i + 1 + '. ' + rankList[i]), origin('center'), pos(posX, posY += 25)]);
+    }
+
+    add([text('Pressione SPACE para reiniciar o jogo.', 10), origin('center'), pos(400, 400)]);
+
+    keyPress('space', () => go('game', {level: 0, score: 0}));
+});
+
+scene('win', ({score}) => {
+    ost.pause();
+    play('ost-win');
+    rankingControl(score);
+    add([text('Voce ganhou!!!', 40), origin('center'), pos(400, 100)]);
+    add([text('Score: ' + score, 28), origin('center'), pos(400, 175)]);
+
+    add([text('Pressione SPACE para reiniciar o jogo.', 10), origin('center'), pos(400, 375)]);
+    add([text('Pressione ENTER para visualizar o rank.', 10), origin('center'), pos(400, 350)]);
+
+    keyPress('enter', () => go('ranking', {score: score}));
+    keyPress('space', () => go('game', {level: 0, score: 0}));
+});
 
 go('game', {level: 0, score: 0});
