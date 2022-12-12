@@ -21,6 +21,8 @@ Barra de espaço.
 ## Créditos:
 Construção base do jogo foi realizada acompanhando o vídeo: https://www.youtube.com/watch?v=v68tS9BgjV4 do canal <a href="https://www.youtube.com/@facildev">FacilDev</a>
 
+Link do projeto original do FacilDev: https://github.com/novorobson/bomberman
+
 Som da bomba: https://freesound.org/people/AyaDrevis/sounds/649191/
 
 OST In game: https://freesound.org/people/BloodPixelHero/sounds/616049/
